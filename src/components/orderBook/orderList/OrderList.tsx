@@ -20,22 +20,24 @@ export const OrderList: React.FunctionComponent<OrderListProps> = ({
   maxTotal,
 }) => {
   return (
-    <div
-      className={classNames(styles.container, {
-        [styles.asks]: type === 'asks',
-        [styles.bids]: type === 'bids',
-      })}
-    >
-      <OrderListHeader />
-      {Array.from(orderDetailsMap.entries()).map(([price, orderDetails]) => (
-        <OrderListItem
-          key={price}
-          type={type}
-          item={orderDetails}
-          maxTotal={maxTotal}
-        />
-      ))}
-    </div>
+    <>
+      <OrderListHeader type={type} />
+      <div
+        className={classNames(styles.container, {
+          [styles.asks]: type === 'asks',
+          [styles.bids]: type === 'bids',
+        })}
+      >
+        {Array.from(orderDetailsMap.entries()).map(([price, orderDetails]) => (
+          <OrderListItem
+            key={price}
+            type={type}
+            item={orderDetails}
+            maxTotal={maxTotal}
+          />
+        ))}
+      </div>
+    </>
   );
 };
 
@@ -62,9 +64,16 @@ const OrderListItem: React.FunctionComponent<{
   );
 };
 
-const OrderListHeader: React.FunctionComponent<{}> = () => {
+const OrderListHeader: React.FunctionComponent<{ type: 'bids' | 'asks' }> = ({
+  type,
+}) => {
   return (
-    <div className={classNames(styles.listItem, styles.header)}>
+    <div
+      className={classNames(styles.listItem, styles.header, {
+        [styles.bidsHeader]: type === 'bids',
+        [styles.asksHeader]: type === 'asks',
+      })}
+    >
       <div>PRICE</div>
       <div>SIZE</div>
       <div>TOTAL</div>

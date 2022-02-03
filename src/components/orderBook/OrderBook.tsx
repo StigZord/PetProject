@@ -11,6 +11,7 @@ import type { Price } from '../../types/orderBook.types';
 
 import styles from './OrderBook.module.scss';
 import { OrderBookHeader } from './orderBookHeader/OrderBookHeader';
+import { Spread } from './orderBookHeader/spread/Spread';
 import { OrderList } from './orderList/OrderList';
 
 const getSpread = (
@@ -57,6 +58,7 @@ export const OrderBook: React.FunctionComponent = () => {
         orderDetailsMap={state.bids}
         maxTotal={state.maxTotal}
       />
+      <Spread spread={spread} percent={percent} />
       <OrderList
         type='asks'
         orderDetailsMap={state.asks}

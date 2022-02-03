@@ -1,0 +1,5 @@
+@mixin breakPoint {
+  @media only screen and (max-width: 641px) {
+    @content;
+  }
+}

@@ -1,12 +1,10 @@
+@import '../../../styles/mixins/breakPoint';
+
 $bidsColor: #357458;
 $asksColor: #983736;
 
 .listContainer {
   width: 100%;
-}
-
-.header {
-  color: #3d424e;
 }
 
 .listItem {
@@ -17,6 +15,31 @@ $asksColor: #983736;
     width: 100%;
     display: flex;
   }
+}
+
+.header {
+  color: #3d424e;
+
+  > div {
+    justify-content: flex-end;
+  }
+}
+
+.bidsHeader {
+  grid-area: bidsHeader;
+
+  @include breakPoint {
+    display: none;
+  }
+}
+
+.askHeader {
+  grid-area: asksHeader;
+}
+
+.container {
+  display: flex;
+  flex-flow: column;
 }
 
 .bids {
@@ -32,6 +55,13 @@ $asksColor: #983736;
     justify-content: flex-start;
     flex-flow: row-reverse;
 
+    @include breakPoint {
+      transform: scaleX(-1);
+      > div {
+        transform: scaleX(-1);
+      }
+    }
+
     > div {
       justify-content: flex-end;
     }
@@ -41,6 +71,10 @@ $asksColor: #983736;
 .asks {
   &.container {
     grid-area: asks;
+
+    @include breakPoint {
+      flex-flow: column-reverse;
+    }
   }
 
   .priceColor {

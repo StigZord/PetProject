@@ -1,3 +1,5 @@
+@import '../../../styles/mixins/breakPoint.scss';
+
 .header {
   display: grid;
   width: 100%;
@@ -6,7 +8,24 @@
   grid-area: header;
 }
 
+.spreadInHeader,
 .spread {
-  display: flex;
   justify-content: center;
+}
+
+.spread {
+  display: none;
+  grid-area: spread;
+
+  @include breakPoint {
+    display: flex;
+  }
+}
+
+.spreadInHeader {
+  display: flex;
+
+  @include breakPoint {
+    display: none;
+  }
 }

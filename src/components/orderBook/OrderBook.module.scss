@@ -1,9 +1,22 @@
+@import '../../styles/mixins/breakPoint';
+
 .orderBook {
   width: 100%;
   display: grid;
   grid-template-areas:
     'header header'
+    'bidsHeader asksHeader'
     'bids asks';
+
+  @include breakPoint {
+    grid-template-areas:
+      'header'
+      'asksHeader'
+      'asks'
+      'spread'
+      'bids';
+  }
+
   column-gap: 2px;
 }
 

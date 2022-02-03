@@ -161,15 +161,6 @@ const handleDataUpdate = (
       map: new Map(),
     });
 
-  const prevBids = Array.from(prevState.bids.values());
-  Array.from(bids.values()).forEach((value, index) => {
-    console.debug(
-      'compare',
-      value.price,
-      index < prevBids.length - 1 ? prevBids[index].price : 'out'
-    );
-  });
-
   return {
     ...prevState,
     asks,
