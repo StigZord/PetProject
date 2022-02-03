@@ -103,7 +103,7 @@ const handleSnapshotReceived = ({
       { total: 0, map: new Map() }
     );
 
-  const { total: bidsTotal, map: bids } = payload.asks
+  const { total: bidsTotal, map: bids } = payload.bids
     .sort(([priceA], [priceB]) => priceB - priceA)
     .reduce<{ total: number; map: Map<Price, CalculatedOrderDetails> }>(
       generateCalculatedOrderDetails,
@@ -124,16 +124,9 @@ const handleDataUpdate = (
   { payload }: DataUpdate,
   prevState: OrderBookState
 ): OrderBookState => {
-  if (prevState.type !== 'Connected') {
-    console.debug('mz test', prevState);
-  }
   assert(prevState.type === 'Connected');
 
   const asksTmp = new Map<Price, OrderDetails>(prevState.asks);
-
-  if (!payload.asks) {
-    console.debug(payload);
-  }
 
   payload.asks.forEach(([price, size]) => {
     if (size === 0) {
@@ -155,7 +148,6 @@ const handleDataUpdate = (
 
   payload.bids.forEach(([price, size]) => {
     if (size === 0) {
-      bidsTmp.delete(price);
       return;
     }
 
@@ -168,6 +160,15 @@ const handleDataUpdate = (
       total: 0,
       map: new Map(),
     });
+
+  const prevBids = Array.from(prevState.bids.values());
+  Array.from(bids.values()).forEach((value, index) => {
+    console.debug(
+      'compare',
+      value.price,
+      index < prevBids.length - 1 ? prevBids[index].price : 'out'
+    );
+  });
 
   return {
     ...prevState,
@@ -192,7 +193,6 @@ const _orderBookReducer = (
       return handleSnapshotReceived(action);
     case OrderBookActionTypes.DataUpdate:
       return handleDataUpdate(action, previousState);
-    // return { type: 'Connected', ...action.payload };
     case OrderBookActionTypes.SocketConnected:
     case OrderBookActionTypes.SocketDisconnected:
       console.debug(action.type);

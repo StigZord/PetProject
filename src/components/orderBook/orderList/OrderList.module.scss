@@ -1,8 +1,12 @@
-$asksColor: #983736;
 $bidsColor: #357458;
+$asksColor: #983736;
 
 .listContainer {
   width: 100%;
+}
+
+.header {
+  color: #3d424e;
 }
 
 .listItem {
@@ -15,9 +19,9 @@ $bidsColor: #357458;
   }
 }
 
-.asks {
-  .container {
-    grid-area: asks;
+.bids {
+  &.container {
+    grid-area: bids;
   }
 
   .priceColor {
@@ -25,7 +29,7 @@ $bidsColor: #357458;
   }
 
   .listItem {
-    justify-content: flex-end;
+    justify-content: flex-start;
     flex-flow: row-reverse;
 
     > div {
@@ -34,9 +38,9 @@ $bidsColor: #357458;
   }
 }
 
-.bids {
-  .container {
-    grid-area: bids;
+.asks {
+  &.container {
+    grid-area: asks;
   }
 
   .priceColor {
@@ -44,7 +48,7 @@ $bidsColor: #357458;
   }
 
   .listItem {
-    justify-content: flex-start;
+    justify-content: flex-end;
 
     > div {
       justify-content: flex-end;

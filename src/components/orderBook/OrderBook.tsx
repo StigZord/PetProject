@@ -22,8 +22,8 @@ const getSpread = (
 
   if (!lowestAsk.done && !highestBid.done) {
     return {
-      spread: highestBid.value.price - lowestAsk.value.price,
-      percent: 1 - lowestAsk.value.price / highestBid.value.price,
+      spread: lowestAsk.value.price - highestBid.value.price,
+      percent: 1 - highestBid.value.price / lowestAsk.value.price,
     };
   }
 
@@ -38,7 +38,6 @@ export const OrderBook: React.FunctionComponent = () => {
   );
 
   useEffect(() => {
-    console.debug('use effect');
     if (!isPageVisible) {
       dispatch({ type: OrderBookActionTypes.CloseStream });
     }
@@ -54,13 +53,13 @@ export const OrderBook: React.FunctionComponent = () => {
     <div className={styles.orderBook}>
       <OrderBookHeader spread={spread} percent={percent} />
       <OrderList
-        type='asks'
-        orderDetailsMap={state.asks}
+        type='bids'
+        orderDetailsMap={state.bids}
         maxTotal={state.maxTotal}
       />
       <OrderList
-        type='bids'
-        orderDetailsMap={state.bids}
+        type='asks'
+        orderDetailsMap={state.asks}
         maxTotal={state.maxTotal}
       />
     </div>

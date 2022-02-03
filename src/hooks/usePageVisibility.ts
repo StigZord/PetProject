@@ -16,7 +16,6 @@ export const usePageVisibility = () => {
   );
 
   useEffect(() => {
-    console.debug('useEffect');
     document.addEventListener(visibilityChangeEventName, onVisibilityChange);
 
     return () => {

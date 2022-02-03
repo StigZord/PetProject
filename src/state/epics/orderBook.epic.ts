@@ -82,10 +82,10 @@ const connectEpic = (
             (response) =>
               !isInfoResponse(response) && !isSubscribeResponse(response)
           ),
-          throttleTime(throttleDuration, asyncScheduler, {
-            leading: true,
-            trailing: true,
-          }),
+          // throttleTime(throttleDuration, asyncScheduler, {
+          //   leading: true,
+          //   trailing: true,
+          // }),
           map<OrderBookMessage, OrderBookBackendActions>((payload) => {
             if (isDataResponse(payload)) {
               return { type: OrderBookActionTypes.DataUpdate, payload };

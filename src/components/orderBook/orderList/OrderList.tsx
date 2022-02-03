@@ -5,8 +5,8 @@ import { formatNumber } from '../../../utls/numberFormater';
 
 import styles from './OrderList.module.scss';
 
-const asksGradientColor = '#1B3434';
-const bidsGradientColor = '#392028';
+const bidsGradientColora = '#1B3434';
+const asksGradientColor = '#392028';
 
 interface OrderListProps {
   type: 'asks' | 'bids';
@@ -50,21 +50,21 @@ const OrderListItem: React.FunctionComponent<{
       style={{
         background: `linear-gradient(${
           type === 'asks'
-            ? `to left, ${asksGradientColor}`
-            : `to right, ${bidsGradientColor}`
+            ? `to right, ${asksGradientColor}`
+            : `to left, ${bidsGradientColora}`
         } ${(item.total / maxTotal) * 100}%, #0000 0% )`,
       }}
     >
       <div className={styles.priceColor}>{formatNumber(item.price)}</div>
-      <div>{formatNumber(item.size)}</div>
-      <div>{formatNumber(item.total)}</div>
+      <div>{formatNumber(item.size, 0)}</div>
+      <div>{formatNumber(item.total, 0)}</div>
     </div>
   );
 };
 
 const OrderListHeader: React.FunctionComponent<{}> = () => {
   return (
-    <div className={styles.listItem}>
+    <div className={classNames(styles.listItem, styles.header)}>
       <div>PRICE</div>
       <div>SIZE</div>
       <div>TOTAL</div>
