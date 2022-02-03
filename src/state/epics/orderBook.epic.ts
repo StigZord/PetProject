@@ -1,32 +1,53 @@
 import { ofType } from 'redux-observable';
-import { map, switchMap, takeUntil } from 'rxjs/operators';
-import { EMPTY, merge, Observable, of, Subject } from 'rxjs';
+import {
+  filter,
+  map,
+  switchMap,
+  takeUntil,
+  throttleTime,
+} from 'rxjs/operators';
+import { asyncScheduler, EMPTY, merge, Observable, of, Subject } from 'rxjs';
 import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
 import type {
   CloseStream,
-  NewContent,
   OpenStream,
   OrderBookActions,
+  OrderBookBackendActions,
   SocketConnected,
   SocketDisconnected,
 } from '../actions/orderBook.actions';
 import { OrderBookActionTypes } from '../actions/orderBook.actions';
+import type {
+  Message,
+  OrderBookMessage,
+  ProductId,
+} from '../../types/orderBook.types';
+import {
+  isDataResponse,
+  isInfo as isInfoResponse,
+  isSnapshotResponse,
+  isSubscribe as isSubscribeResponse,
+} from '../../types/typeGuards';
 
-const subscribeMessage = {
-  event: 'subscribe',
+const getMessage = (
+  event: 'subscribe' | 'unsubscribe',
+  productId: ProductId
+): Message => ({
+  event,
   feed: 'book_ui_1',
-  product_ids: ['PI_XBTUSD'],
-};
+  product_ids: [productId],
+});
 
 const url = 'wss://www.cryptofacilities.com/ws/v1';
 const openObserver = new Subject<Event>();
 const closeObserver = new Subject<CloseEvent>();
+const throttleDuration = 1000;
 
-let socket$: WebSocketSubject<any>;
+let socket$: WebSocketSubject<OrderBookMessage>;
 
 const connectEpic = (
   action$: Observable<OrderBookActions>
-): Observable<SocketConnected | SocketDisconnected | NewContent> =>
+): Observable<SocketConnected | SocketDisconnected | OrderBookBackendActions> =>
   action$.pipe(
     ofType<OrderBookActions, OrderBookActionTypes.OpenStream, OpenStream>(
       OrderBookActionTypes.OpenStream
@@ -47,7 +68,7 @@ const connectEpic = (
         })
       );
 
-      socket$ = webSocket<any>({
+      socket$ = webSocket<OrderBookMessage>({
         url,
         openObserver,
         closeObserver,
@@ -57,10 +78,27 @@ const connectEpic = (
         open$,
         close$,
         socket$.pipe(
-          map<any, NewContent>((payload) => ({
-            type: OrderBookActionTypes.NewContent,
-            payload: payload,
-          })),
+          filter(
+            (response) =>
+              !isInfoResponse(response) && !isSubscribeResponse(response)
+          ),
+          throttleTime(throttleDuration, asyncScheduler, {
+            leading: true,
+            trailing: true,
+          }),
+          map<OrderBookMessage, OrderBookBackendActions>((payload) => {
+            if (isDataResponse(payload)) {
+              return { type: OrderBookActionTypes.DataUpdate, payload };
+            }
+
+            if (isSnapshotResponse(payload)) {
+              return { type: OrderBookActionTypes.SnapshotReceived, payload };
+            }
+
+            return {
+              type: OrderBookActionTypes.UnsupportedBackendResponse,
+            };
+          }),
           takeUntil(
             action$.pipe(
               ofType<
@@ -84,7 +122,7 @@ const onConnectedEpic = (action$: Observable<OrderBookActions>) =>
     >(OrderBookActionTypes.SocketConnected),
     switchMap(() => {
       console.debug('sending message');
-      socket$.next(subscribeMessage);
+      socket$.next(getMessage('subscribe', 'PI_XBTUSD'));
       return EMPTY;
     })
   );

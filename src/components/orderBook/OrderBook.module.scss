@@ -1,0 +1,20 @@
+.orderBook {
+  width: 100%;
+  display: grid;
+  grid-template-areas:
+    'header header'
+    'asks bids';
+  column-gap: 2px;
+}
+
+.rows {
+  width: 100%;
+  display: flex;
+  flex-flow: row;
+  align-self: center;
+}
+
+.row {
+  display: flex;
+  flex-flow: row;
+}

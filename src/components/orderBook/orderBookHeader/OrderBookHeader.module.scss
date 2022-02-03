@@ -1,0 +1,12 @@
+.header {
+  display: grid;
+  width: 100%;
+  flex-flow: row;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-area: header;
+}
+
+.spread {
+  display: flex;
+  justify-content: center;
+}

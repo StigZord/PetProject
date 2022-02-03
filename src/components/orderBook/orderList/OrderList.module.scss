@@ -1,0 +1,53 @@
+$asksColor: #983736;
+$bidsColor: #357458;
+
+.listContainer {
+  width: 100%;
+}
+
+.listItem {
+  display: flex;
+  padding: 0 18px;
+
+  > div {
+    width: 100%;
+    display: flex;
+  }
+}
+
+.asks {
+  .container {
+    grid-area: asks;
+  }
+
+  .priceColor {
+    color: $bidsColor;
+  }
+
+  .listItem {
+    justify-content: flex-end;
+    flex-flow: row-reverse;
+
+    > div {
+      justify-content: flex-end;
+    }
+  }
+}
+
+.bids {
+  .container {
+    grid-area: bids;
+  }
+
+  .priceColor {
+    color: $asksColor;
+  }
+
+  .listItem {
+    justify-content: flex-start;
+
+    > div {
+      justify-content: flex-end;
+    }
+  }
+}
