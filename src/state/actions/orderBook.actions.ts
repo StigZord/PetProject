@@ -1,5 +1,6 @@
 import type {
   DataResponse,
+  ProductId,
   SnapshotResponse,
 } from '../../types/orderBook.types';
 
@@ -15,6 +16,8 @@ export const enum OrderBookActionTypes {
   UnsupportedBackendResponse = 'UnsupportedBackendResponse',
   UpdateAsksLastVisibleIndex = 'UpdateLastAsksVisibleIndex',
   UpdateBidsLastVisibleIndex = 'UpdateLastBidsVisibleIndex',
+  SwitchContract = 'SwitchContract',
+  SetCurrentProductId = 'SetCurrentProductId',
 }
 
 export interface OpenStream {
@@ -65,6 +68,16 @@ export interface UpdateBidsLastVisibleIndex {
   index: number;
 }
 
+export interface SwitchContract {
+  type: OrderBookActionTypes.SwitchContract;
+  productId: ProductId;
+}
+
+export interface SetCurrentProductId {
+  type: OrderBookActionTypes.SetCurrentProductId;
+  productId: ProductId;
+}
+
 export type OrderBookBackendActions =
   | InfoEventReceived
   | SubscribeConfirmationReceived
@@ -77,6 +90,8 @@ export type OrderBookActions =
   | CloseStream
   | SocketConnected
   | SocketDisconnected
+  | SwitchContract
+  | SetCurrentProductId
   | UpdateAsksLastVisibleIndex
   | UpdateBidsLastVisibleIndex
   | OrderBookBackendActions;

@@ -1,20 +1,22 @@
-import { ofType } from 'redux-observable';
+import { ofType, StateObservable } from 'redux-observable';
 import {
   filter,
   map,
   switchMap,
   takeUntil,
-  throttleTime,
+  withLatestFrom,
 } from 'rxjs/operators';
-import { asyncScheduler, EMPTY, merge, Observable, of, Subject } from 'rxjs';
+import { EMPTY, merge, Observable, of, Subject } from 'rxjs';
 import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
 import type {
   CloseStream,
   OpenStream,
   OrderBookActions,
   OrderBookBackendActions,
+  SetCurrentProductId,
   SocketConnected,
   SocketDisconnected,
+  SwitchContract,
 } from '../actions/orderBook.actions';
 import { OrderBookActionTypes } from '../actions/orderBook.actions';
 import type {
@@ -28,6 +30,7 @@ import {
   isSnapshotResponse,
   isSubscribe as isSubscribeResponse,
 } from '../../types/typeGuards';
+import type { AppState } from '..';
 
 const getMessage = (
   event: 'subscribe' | 'unsubscribe',
@@ -113,24 +116,55 @@ const connectEpic = (
     })
   );
 
-const onConnectedEpic = (action$: Observable<OrderBookActions>) =>
+const onConnectedEpic = (
+  action$: Observable<OrderBookActions>,
+  state$: Observable<AppState>
+) =>
   action$.pipe(
     ofType<
       OrderBookActions,
       OrderBookActionTypes.SocketConnected,
       SocketConnected
     >(OrderBookActionTypes.SocketConnected),
-    switchMap(() => {
-      console.debug('sending message');
-      socket$.next(getMessage('subscribe', 'PI_XBTUSD'));
+    withLatestFrom(state$),
+    switchMap(([, state]) => {
+      console.debug('subscribing after connect', state);
+      socket$.next(getMessage('subscribe', state.orderBook.productId));
       return EMPTY;
+    })
+  );
+
+const switchContractEpic = (
+  action$: Observable<OrderBookActions>,
+  state$: Observable<AppState>
+) =>
+  action$.pipe(
+    ofType<
+      OrderBookActions,
+      OrderBookActionTypes.SwitchContract,
+      SwitchContract
+    >(OrderBookActionTypes.SwitchContract),
+    withLatestFrom(state$),
+    switchMap(([action, prevState]) => {
+      if (prevState.orderBook.type !== 'Connected') {
+        return EMPTY;
+      }
+      socket$.next(getMessage('unsubscribe', prevState.orderBook.productId));
+      socket$.next(getMessage('subscribe', action.productId));
+      return of<SetCurrentProductId>({
+        type: OrderBookActionTypes.SetCurrentProductId,
+        productId: action.productId,
+      });
     })
   );
 
 export const orderBookEpic = (
   action$: Observable<OrderBookActions>,
-  // TODO
-  state$: Observable<any>
+  state$: StateObservable<AppState>
 ): Observable<OrderBookActions> => {
-  return merge(connectEpic(action$), onConnectedEpic(action$));
+  return merge(
+    connectEpic(action$),
+    onConnectedEpic(action$, state$),
+    switchContractEpic(action$, state$)
+  );
 };

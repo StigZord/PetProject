@@ -27,14 +27,18 @@ export interface CalculatedOrderDetails {
 
 type OrderDetails = RawDetails | CalculatedOrderDetails;
 
-interface NeverLoaded {
+interface Base {
+  productId: ProductId;
+}
+
+interface NeverLoaded extends Base {
   type: 'NeverLoaded';
 }
-interface ConnectedWaitingForData {
+interface ConnectedWaitingForData extends Base {
   type: 'ConnectedWaitingForData';
 }
 
-interface Connected {
+interface Connected extends Base {
   type: 'Connected';
   asks: Map<Price, CalculatedOrderDetails>;
   bids: Map<Price, CalculatedOrderDetails>;
@@ -57,7 +61,10 @@ export type OrderBookState =
   | Connected
   | Disconnected;
 
-const initialState: OrderBookState = { type: 'NeverLoaded' };
+const initialState: OrderBookState = {
+  type: 'NeverLoaded',
+  productId: 'PI_XBTUSD',
+};
 
 const generateCalculatedOrderDetails = (
   acc: { total: number; map: Map<Price, CalculatedOrderDetails> },
@@ -270,6 +277,12 @@ const _orderBookReducer = (
         action.index,
         previousState
       );
+    case OrderBookActionTypes.SetCurrentProductId:
+      return {
+        ...previousState,
+        productId: action.productId,
+      };
+    case OrderBookActionTypes.SwitchContract:
     case OrderBookActionTypes.UnsupportedBackendResponse:
     case OrderBookActionTypes.InfoReceived:
     case OrderBookActionTypes.SubscribeConfirmationReceived:

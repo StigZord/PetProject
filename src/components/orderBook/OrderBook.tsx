@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { usePageVisibility } from '../../hooks/usePageVisibility';
-import type { AppDispatch, RootState } from '../../state';
+import type { AppDispatch, AppState } from '../../state';
 import { OrderBookActionTypes } from '../../state/actions/orderBook.actions';
 import type {
   CalculatedOrderDetails,
@@ -34,8 +34,8 @@ const getSpread = (
 export const OrderBook: React.FunctionComponent = () => {
   const dispatch = useDispatch<AppDispatch>();
   const isPageVisible = usePageVisibility();
-  const state = useSelector<RootState, OrderBookState>(
-    (state: RootState) => state.orderBook
+  const state = useSelector<AppState, OrderBookState>(
+    (state: AppState) => state.orderBook
   );
 
   useEffect(() => {
