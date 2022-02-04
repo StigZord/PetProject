@@ -1,5 +1,3 @@
-import { formatNumber, formatPercent } from '../../../utls/numberFormater';
-
 import styles from './OrderBookHeader.module.scss';
 import { Spread } from './spread/Spread';
 

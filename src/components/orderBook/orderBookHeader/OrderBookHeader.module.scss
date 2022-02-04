@@ -16,6 +16,8 @@
 .spread {
   display: none;
   grid-area: spread;
+  padding: 12px;
+  color: #3d424e;
 
   @include breakPoint {
     display: flex;

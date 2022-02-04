@@ -3,11 +3,8 @@
 $bidsColor: #357458;
 $asksColor: #983736;
 
-.listContainer {
-  width: 100%;
-}
-
 .listItem {
+  height: 18px;
   display: flex;
   padding: 0 18px;
 
@@ -40,6 +37,8 @@ $asksColor: #983736;
 .container {
   display: flex;
   flex-flow: column;
+  height: 100%;
+  overflow: hidden;
 }
 
 .bids {

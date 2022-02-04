@@ -56,13 +56,13 @@ export const OrderBook: React.FunctionComponent = () => {
       <OrderList
         type='bids'
         orderDetailsMap={state.bids}
-        maxTotal={state.maxTotal}
+        maxTotal={state.maxTotal.totalValue}
       />
       <Spread spread={spread} percent={percent} />
       <OrderList
         type='asks'
         orderDetailsMap={state.asks}
-        maxTotal={state.maxTotal}
+        maxTotal={state.maxTotal.totalValue}
       />
     </div>
   );

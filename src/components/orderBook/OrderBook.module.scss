@@ -2,11 +2,15 @@
 
 .orderBook {
   width: 100%;
+  height: 100%;
   display: grid;
+  overflow: hidden;
+
   grid-template-areas:
     'header header'
     'bidsHeader asksHeader'
     'bids asks';
+  grid-template-rows: min-content min-content auto;
 
   @include breakPoint {
     grid-template-areas:
@@ -15,6 +19,7 @@
       'asks'
       'spread'
       'bids';
+    grid-template-rows: min-content min-content auto min-content auto;
   }
 
   column-gap: 2px;

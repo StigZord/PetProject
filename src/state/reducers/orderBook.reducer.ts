@@ -40,7 +40,11 @@ interface Connected {
   bids: Map<Price, CalculatedOrderDetails>;
   productId: ProductId;
   numLevels: number;
-  maxTotal: number;
+  maxTotal: {
+    lastVisibleAsksIndex: number;
+    lastVisibleBidsIndex: number;
+    totalValue: number;
+  };
 }
 
 interface Disconnected extends Omit<Connected, 'type'> {
@@ -93,9 +97,10 @@ const generateCalculatedOrderDetailsFromExisting = (
   return acc;
 };
 
-const handleSnapshotReceived = ({
-  payload,
-}: SnapshotReceived): OrderBookState => {
+const handleSnapshotReceived = (
+  { payload }: SnapshotReceived,
+  prevState: OrderBookState
+): OrderBookState => {
   const { total: asksTotal, map: asks } = payload.asks
     .sort(([priceA], [priceB]) => priceA - priceB)
     .reduce<{ total: number; map: Map<Price, CalculatedOrderDetails> }>(
@@ -116,7 +121,17 @@ const handleSnapshotReceived = ({
     productId: payload.product_id,
     asks,
     bids,
-    maxTotal: Math.max(asksTotal, bidsTotal),
+    maxTotal: {
+      ...(prevState.type === 'Connected'
+        ? {
+            ...prevState.maxTotal,
+          }
+        : {
+            lastVisibleAsksIndex: asks.size - 1,
+            lastVisibleBidsIndex: bids.size - 1,
+          }),
+      totalValue: Math.max(asksTotal, bidsTotal),
+    },
   };
 };
 
@@ -137,7 +152,7 @@ const handleDataUpdate = (
     asksTmp.set(price, { type: 'RawDetails', price, size });
   });
 
-  const { total: asksTotal, map: asks } = Array.from(asksTmp.entries())
+  const { map: asks } = Array.from(asksTmp.entries())
     .sort(([priceA], [priceB]) => priceA - priceB)
     .reduce(generateCalculatedOrderDetailsFromExisting, {
       total: 0,
@@ -154,7 +169,7 @@ const handleDataUpdate = (
     bidsTmp.set(price, { type: 'RawDetails', price, size });
   });
 
-  const { total: bidsTotal, map: bids } = Array.from(bidsTmp.entries())
+  const { map: bids } = Array.from(bidsTmp.entries())
     .sort(([priceA], [priceB]) => priceB - priceA)
     .reduce(generateCalculatedOrderDetailsFromExisting, {
       total: 0,
@@ -165,9 +180,66 @@ const handleDataUpdate = (
     ...prevState,
     asks,
     bids,
-    maxTotal: Math.max(asksTotal, bidsTotal),
+
+    maxTotal: {
+      ...prevState.maxTotal,
+      totalValue: Math.max(
+        Array.from(bids.values())[
+          Math.min(prevState.maxTotal.lastVisibleBidsIndex, bids.size - 1)
+        ].total,
+        Array.from(asks.values())[
+          Math.min(prevState.maxTotal.lastVisibleAsksIndex, asks.size - 1)
+        ].total
+      ),
+    },
   };
 };
+
+const handleUpdateLastVisibleBidsIndexChange = (
+  bidsIndex: number,
+  prevState: OrderBookState
+) => {
+  assert(prevState.type === 'Connected');
+
+  return handleLastVisibleItemIndexChange(
+    bidsIndex,
+    prevState.maxTotal.lastVisibleAsksIndex,
+    prevState
+  );
+};
+
+const handleUpdateLastVisibleAsksIndexChange = (
+  asksIndex: number,
+  prevState: OrderBookState
+) => {
+  assert(prevState.type === 'Connected');
+
+  return handleLastVisibleItemIndexChange(
+    prevState.maxTotal.lastVisibleBidsIndex,
+    asksIndex,
+    prevState
+  );
+};
+
+const handleLastVisibleItemIndexChange = (
+  bidsIndex: number,
+  asksIndex: number,
+  prevState: Connected
+): OrderBookState => ({
+  ...prevState,
+  maxTotal: {
+    lastVisibleBidsIndex: bidsIndex,
+    lastVisibleAsksIndex: asksIndex,
+    totalValue: Math.max(
+      Array.from(prevState.bids.values())[
+        Math.min(bidsIndex, prevState.bids.size - 1)
+      ].total,
+      Array.from(prevState.asks.values())[
+        Math.min(asksIndex, prevState.asks.size - 1)
+      ].total
+    ),
+  },
+});
 
 const _orderBookReducer = (
   previousState: OrderBookState,
@@ -181,13 +253,23 @@ const _orderBookReducer = (
       console.debug('close');
       return previousState;
     case OrderBookActionTypes.SnapshotReceived:
-      return handleSnapshotReceived(action);
+      return handleSnapshotReceived(action, previousState);
     case OrderBookActionTypes.DataUpdate:
       return handleDataUpdate(action, previousState);
     case OrderBookActionTypes.SocketConnected:
     case OrderBookActionTypes.SocketDisconnected:
       console.debug(action.type);
       return previousState;
+    case OrderBookActionTypes.UpdateBidsLastVisibleIndex:
+      return handleUpdateLastVisibleBidsIndexChange(
+        action.index,
+        previousState
+      );
+    case OrderBookActionTypes.UpdateAsksLastVisibleIndex:
+      return handleUpdateLastVisibleAsksIndexChange(
+        action.index,
+        previousState
+      );
     case OrderBookActionTypes.UnsupportedBackendResponse:
     case OrderBookActionTypes.InfoReceived:
     case OrderBookActionTypes.SubscribeConfirmationReceived:

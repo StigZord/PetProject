@@ -1,7 +1,12 @@
 import classNames from 'classnames';
+import { useEffect, useRef, useState } from 'react';
+import { useDispatch } from 'react-redux';
+import type { AppDispatch } from '../../../state';
+import { OrderBookActionTypes } from '../../../state/actions/orderBook.actions';
 import type { CalculatedOrderDetails } from '../../../state/reducers/orderBook.reducer';
 import type { Price } from '../../../types/orderBook.types';
 import { formatNumber } from '../../../utls/numberFormater';
+import { ORDER_ITEM_HEIGHT } from '../utils/orderBook.constants';
 
 import styles from './OrderList.module.scss';
 
@@ -19,16 +24,55 @@ export const OrderList: React.FunctionComponent<OrderListProps> = ({
   orderDetailsMap,
   maxTotal,
 }) => {
+  const dispatch = useDispatch<AppDispatch>();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [maxItemsToRender, setMaxItemsToRender] = useState<number>(10);
+
+  useEffect(() => {
+    const resizeObserver = new ResizeObserver((entries) => {
+      if (entries && entries[0]) {
+        const maxItemsToRender = Math.floor(
+          entries[0].contentRect.height / ORDER_ITEM_HEIGHT
+        );
+        setMaxItemsToRender(maxItemsToRender);
+      }
+    });
+
+    if (containerRef.current) {
+      resizeObserver.observe(containerRef.current);
+    }
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [containerRef]);
+
+  useEffect(() => {
+    dispatch({
+      type:
+        type === 'bids'
+          ? OrderBookActionTypes.UpdateBidsLastVisibleIndex
+          : OrderBookActionTypes.UpdateAsksLastVisibleIndex,
+      index: maxItemsToRender - 1,
+    });
+  }, [dispatch, maxItemsToRender, type]);
+
+  const ordersToRender = Array.from(orderDetailsMap.entries()).slice(
+    0,
+    maxItemsToRender
+  );
+
   return (
     <>
       <OrderListHeader type={type} />
       <div
+        ref={containerRef}
         className={classNames(styles.container, {
           [styles.asks]: type === 'asks',
           [styles.bids]: type === 'bids',
         })}
       >
-        {Array.from(orderDetailsMap.entries()).map(([price, orderDetails]) => (
+        {ordersToRender.map(([price, orderDetails]) => (
           <OrderListItem
             key={price}
             type={type}

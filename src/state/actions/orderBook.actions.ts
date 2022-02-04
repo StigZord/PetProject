@@ -13,6 +13,8 @@ export const enum OrderBookActionTypes {
   SnapshotReceived = 'SnapshotReceived',
   DataUpdate = 'DataUpdate',
   UnsupportedBackendResponse = 'UnsupportedBackendResponse',
+  UpdateAsksLastVisibleIndex = 'UpdateLastAsksVisibleIndex',
+  UpdateBidsLastVisibleIndex = 'UpdateLastBidsVisibleIndex',
 }
 
 export interface OpenStream {
@@ -53,6 +55,16 @@ export interface UnsupportedBackendResponse {
   type: OrderBookActionTypes.UnsupportedBackendResponse;
 }
 
+export interface UpdateAsksLastVisibleIndex {
+  type: OrderBookActionTypes.UpdateAsksLastVisibleIndex;
+  index: number;
+}
+
+export interface UpdateBidsLastVisibleIndex {
+  type: OrderBookActionTypes.UpdateBidsLastVisibleIndex;
+  index: number;
+}
+
 export type OrderBookBackendActions =
   | InfoEventReceived
   | SubscribeConfirmationReceived
@@ -65,4 +77,6 @@ export type OrderBookActions =
   | CloseStream
   | SocketConnected
   | SocketDisconnected
+  | UpdateAsksLastVisibleIndex
+  | UpdateBidsLastVisibleIndex
   | OrderBookBackendActions;
