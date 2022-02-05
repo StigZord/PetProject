@@ -1,5 +1,5 @@
 import type {
-  DataResponse,
+  DeltaResponse,
   InfoResponse,
   OrderBookMessage,
   SnapshotResponse,
@@ -28,7 +28,7 @@ export const isSnapshotResponse = (
 
 export const isDataResponse = (
   response: OrderBookMessage
-): response is DataResponse => {
+): response is DeltaResponse => {
   // TODO: This guard feels little unreliable, since I believe there could
   // be more feed types in real life example
   return (

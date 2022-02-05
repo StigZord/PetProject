@@ -57,6 +57,7 @@
     ]
   },
   "devDependencies": {
+    "jest-watch-typeahead": "^0.6.5",
     "prettier": "2.5.1",
     "redux-devtools-extension": "^2.13.9"
   }

@@ -1,4 +1,7 @@
-import { formatNumber, formatPercent } from '../../../../utls/numberFormater';
+import {
+  formatSpreadNumber,
+  formatPercent,
+} from '../../../../utls/numberFormater';
 import styles from '../OrderBookHeader.module.scss';
 
 interface SpreadProps {
@@ -14,7 +17,7 @@ export const Spread: React.FunctionComponent<SpreadProps> = ({
 }) => {
   return (
     <div className={className}>
-      Spread {formatNumber(spread, 1)} ({formatPercent(percent)})
+      Spread {formatSpreadNumber(spread)} ({formatPercent(percent)})
     </div>
   );
 };

@@ -1,5 +1,9 @@
 import type { Reducer } from 'redux';
+import { of } from 'rxjs';
+import { mergeSortedOrdersAndFilterZeroSize } from '../../components/orderBook/utils/orderBook.helpers';
 import type {
+  Order,
+  OrderBookResponse,
   Price,
   ProductId,
   Size,
@@ -13,22 +17,18 @@ import type {
 } from '../actions/orderBook.actions';
 import { OrderBookActionTypes } from '../actions/orderBook.actions';
 
-interface RawDetails {
-  type: 'RawDetails';
-  price: Price;
-  size: Size;
-}
-export interface CalculatedOrderDetails {
-  type: 'CalculatedDetails';
+export interface OrderDisplayProps {
   price: Price;
   size: Size;
   total: Total;
 }
 
-type OrderDetails = RawDetails | CalculatedOrderDetails;
-
 interface Base {
   productId: ProductId;
+  lastVisibleIndexes: {
+    asksIndex: number;
+    bidsIndex: number;
+  };
 }
 
 interface NeverLoaded extends Base {
@@ -40,15 +40,11 @@ interface ConnectedWaitingForData extends Base {
 
 interface Connected extends Base {
   type: 'Connected';
-  asks: Map<Price, CalculatedOrderDetails>;
-  bids: Map<Price, CalculatedOrderDetails>;
+  asks: Order[];
+  bids: Order[];
+
   productId: ProductId;
   numLevels: number;
-  maxTotal: {
-    lastVisibleAsksIndex: number;
-    lastVisibleBidsIndex: number;
-    totalValue: number;
-  };
 }
 
 interface Disconnected extends Omit<Connected, 'type'> {
@@ -64,83 +60,32 @@ export type OrderBookState =
 const initialState: OrderBookState = {
   type: 'NeverLoaded',
   productId: 'PI_XBTUSD',
+  lastVisibleIndexes: {
+    asksIndex: 10,
+    bidsIndex: 10,
+  },
 };
 
-const generateCalculatedOrderDetails = (
-  acc: { total: number; map: Map<Price, CalculatedOrderDetails> },
-  [price, size]: [Price, Size]
-) => {
-  if (size === 0) {
-    return acc;
-  }
-
-  acc.total += asNumber(size);
-  acc.map.set(price, {
-    type: 'CalculatedDetails',
-    price,
-    size,
-    total: asTotal(acc.total),
-  });
-
-  return acc;
-};
-
-const generateCalculatedOrderDetailsFromExisting = (
-  acc: { total: number; map: Map<Price, CalculatedOrderDetails> },
-  [price, value]: [Price, RawDetails | CalculatedOrderDetails]
-) => {
-  if (value.size === 0) {
-    return acc;
-  }
-
-  acc.total += asNumber(value.size);
-  acc.map.set(price, {
-    type: 'CalculatedDetails',
-    price,
-    size: value.size,
-    total: asTotal(acc.total),
-  });
-
-  return acc;
-};
+const asksSortingMethod: (orderA: Order, orderB: Order) => number = (
+  [priceA],
+  [priceB]
+) => priceA - priceB;
+const bidsSortingMethod: (orderA: Order, orderB: Order) => number = (
+  [priceA],
+  [priceB]
+) => priceB - priceA;
 
 const handleSnapshotReceived = (
   { payload }: SnapshotReceived,
   prevState: OrderBookState
-): OrderBookState => {
-  const { total: asksTotal, map: asks } = payload.asks
-    .sort(([priceA], [priceB]) => priceA - priceB)
-    .reduce<{ total: number; map: Map<Price, CalculatedOrderDetails> }>(
-      generateCalculatedOrderDetails,
-      { total: 0, map: new Map() }
-    );
-
-  const { total: bidsTotal, map: bids } = payload.bids
-    .sort(([priceA], [priceB]) => priceB - priceA)
-    .reduce<{ total: number; map: Map<Price, CalculatedOrderDetails> }>(
-      generateCalculatedOrderDetails,
-      { total: 0, map: new Map() }
-    );
-
-  return {
-    type: 'Connected',
-    numLevels: payload.numLevels,
-    productId: payload.product_id,
-    asks,
-    bids,
-    maxTotal: {
-      ...(prevState.type === 'Connected'
-        ? {
-            ...prevState.maxTotal,
-          }
-        : {
-            lastVisibleAsksIndex: asks.size - 1,
-            lastVisibleBidsIndex: bids.size - 1,
-          }),
-      totalValue: Math.max(asksTotal, bidsTotal),
-    },
-  };
-};
+): OrderBookState => ({
+  ...prevState,
+  type: 'Connected',
+  numLevels: payload.numLevels,
+  productId: payload.product_id,
+  asks: payload.asks.sort(asksSortingMethod),
+  bids: payload.bids.sort(bidsSortingMethod),
+});
 
 const handleDataUpdate = (
   { payload }: DataUpdate,
@@ -148,105 +93,34 @@ const handleDataUpdate = (
 ): OrderBookState => {
   assert(prevState.type === 'Connected');
 
-  const asksTmp = new Map<Price, OrderDetails>(prevState.asks);
-
-  payload.asks.forEach(([price, size]) => {
-    if (size === 0) {
-      asksTmp.delete(price);
-      return;
-    }
-
-    asksTmp.set(price, { type: 'RawDetails', price, size });
-  });
-
-  const { map: asks } = Array.from(asksTmp.entries())
-    .sort(([priceA], [priceB]) => priceA - priceB)
-    .reduce(generateCalculatedOrderDetailsFromExisting, {
-      total: 0,
-      map: new Map(),
-    });
-
-  const bidsTmp = new Map<Price, OrderDetails>(prevState.bids);
-
-  payload.bids.forEach(([price, size]) => {
-    if (size === 0) {
-      return;
-    }
-
-    bidsTmp.set(price, { type: 'RawDetails', price, size });
-  });
-
-  const { map: bids } = Array.from(bidsTmp.entries())
-    .sort(([priceA], [priceB]) => priceB - priceA)
-    .reduce(generateCalculatedOrderDetailsFromExisting, {
-      total: 0,
-      map: new Map(),
-    });
-
   return {
     ...prevState,
-    asks,
-    bids,
-
-    maxTotal: {
-      ...prevState.maxTotal,
-      totalValue: Math.max(
-        Array.from(bids.values())[
-          Math.min(prevState.maxTotal.lastVisibleBidsIndex, bids.size - 1)
-        ].total,
-        Array.from(asks.values())[
-          Math.min(prevState.maxTotal.lastVisibleAsksIndex, asks.size - 1)
-        ].total
-      ),
-    },
+    asks: mergeSortedOrdersAndFilterZeroSize(
+      prevState.asks,
+      payload.asks.sort(asksSortingMethod),
+      'asc'
+    ),
+    bids: mergeSortedOrdersAndFilterZeroSize(
+      prevState.bids,
+      payload.bids.sort(bidsSortingMethod),
+      'desc'
+    ),
   };
 };
 
-const handleUpdateLastVisibleBidsIndexChange = (
-  bidsIndex: number,
+const handleUpdateLastVisibleIndexChange = (
+  type: 'bidsIndex' | 'asksIndex',
+  index: number,
   prevState: OrderBookState
-) => {
-  assert(prevState.type === 'Connected');
-
-  return handleLastVisibleItemIndexChange(
-    bidsIndex,
-    prevState.maxTotal.lastVisibleAsksIndex,
-    prevState
-  );
+): OrderBookState => {
+  return {
+    ...prevState,
+    lastVisibleIndexes: {
+      ...prevState.lastVisibleIndexes,
+      [type]: index,
+    },
+  };
 };
-
-const handleUpdateLastVisibleAsksIndexChange = (
-  asksIndex: number,
-  prevState: OrderBookState
-) => {
-  assert(prevState.type === 'Connected');
-
-  return handleLastVisibleItemIndexChange(
-    prevState.maxTotal.lastVisibleBidsIndex,
-    asksIndex,
-    prevState
-  );
-};
-
-const handleLastVisibleItemIndexChange = (
-  bidsIndex: number,
-  asksIndex: number,
-  prevState: Connected
-): OrderBookState => ({
-  ...prevState,
-  maxTotal: {
-    lastVisibleBidsIndex: bidsIndex,
-    lastVisibleAsksIndex: asksIndex,
-    totalValue: Math.max(
-      Array.from(prevState.bids.values())[
-        Math.min(bidsIndex, prevState.bids.size - 1)
-      ].total,
-      Array.from(prevState.asks.values())[
-        Math.min(asksIndex, prevState.asks.size - 1)
-      ].total
-    ),
-  },
-});
 
 const _orderBookReducer = (
   previousState: OrderBookState,
@@ -262,18 +136,21 @@ const _orderBookReducer = (
     case OrderBookActionTypes.SnapshotReceived:
       return handleSnapshotReceived(action, previousState);
     case OrderBookActionTypes.DataUpdate:
+      // updateCounter();
       return handleDataUpdate(action, previousState);
     case OrderBookActionTypes.SocketConnected:
     case OrderBookActionTypes.SocketDisconnected:
       console.debug(action.type);
       return previousState;
     case OrderBookActionTypes.UpdateBidsLastVisibleIndex:
-      return handleUpdateLastVisibleBidsIndexChange(
+      return handleUpdateLastVisibleIndexChange(
+        'bidsIndex',
         action.index,
         previousState
       );
     case OrderBookActionTypes.UpdateAsksLastVisibleIndex:
-      return handleUpdateLastVisibleAsksIndexChange(
+      return handleUpdateLastVisibleIndexChange(
+        'asksIndex',
         action.index,
         previousState
       );

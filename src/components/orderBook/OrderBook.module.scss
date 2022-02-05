@@ -10,6 +10,7 @@
     'header header'
     'bidsHeader asksHeader'
     'bids asks';
+  grid-template-columns: 1fr 1fr;
   grid-template-rows: min-content min-content auto;
 
   @include breakPoint {
@@ -19,6 +20,7 @@
       'asks'
       'spread'
       'bids';
+    grid-template-columns: 1fr;
     grid-template-rows: min-content min-content auto min-content auto;
   }
 

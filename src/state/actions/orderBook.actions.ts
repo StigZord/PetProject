@@ -1,5 +1,5 @@
 import type {
-  DataResponse,
+  DeltaResponse,
   ProductId,
   SnapshotResponse,
 } from '../../types/orderBook.types';
@@ -51,7 +51,7 @@ export interface SnapshotReceived {
 
 export interface DataUpdate {
   type: OrderBookActionTypes.DataUpdate;
-  payload: DataResponse;
+  payload: DeltaResponse;
 }
 
 export interface UnsupportedBackendResponse {

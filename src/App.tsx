@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import styles from './App.module.scss';
 import { useDispatch, useSelector } from 'react-redux';
 import { OrderBook } from './components/orderBook';
@@ -16,10 +16,9 @@ function App() {
     (state) => state.orderBook.productId
   );
 
-  // TODO uncomment before posting
-  // useEffect(() => {
-  //   dispatch({ type: OrderBookActionTypes.OpenStream });
-  // }, [dispatch]);
+  useEffect(() => {
+    dispatch({ type: OrderBookActionTypes.OpenStream });
+  }, [dispatch]);
 
   const onSwitchContract = useCallback(() => {
     const productId = getNewProductId(currentProductId);
