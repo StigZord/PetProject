@@ -20,7 +20,6 @@ $fontColor: #b0b2b8;
   display: flex;
   flex-flow: column;
   align-items: center;
-  margin-top: auto;
 }
 
 .toggleButton {
@@ -31,6 +30,7 @@ $fontColor: #b0b2b8;
   color: $fontColor;
   padding: 8px 12px;
   font-weight: bold;
+  cursor: pointer;
 }
 
 .productInfo {

@@ -136,12 +136,13 @@ const _orderBookReducer = (
     case OrderBookActionTypes.SnapshotReceived:
       return handleSnapshotReceived(action, previousState);
     case OrderBookActionTypes.DataUpdate:
-      // updateCounter();
       return handleDataUpdate(action, previousState);
-    case OrderBookActionTypes.SocketConnected:
     case OrderBookActionTypes.SocketDisconnected:
-      console.debug(action.type);
-      return previousState;
+      assert(previousState.type === 'Connected');
+      return {
+        ...previousState,
+        type: 'Disconnected',
+      };
     case OrderBookActionTypes.UpdateBidsLastVisibleIndex:
       return handleUpdateLastVisibleIndexChange(
         'bidsIndex',
@@ -159,6 +160,7 @@ const _orderBookReducer = (
         ...previousState,
         productId: action.productId,
       };
+    case OrderBookActionTypes.SocketConnected:
     case OrderBookActionTypes.SwitchContract:
     case OrderBookActionTypes.UnsupportedBackendResponse:
     case OrderBookActionTypes.InfoReceived:

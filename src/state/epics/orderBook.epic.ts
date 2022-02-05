@@ -57,16 +57,14 @@ const connectEpic = (
     ),
     switchMap(() => {
       const open$ = openObserver.pipe(
-        switchMap((event) => {
-          console.debug('open', event);
-          return of<SocketConnected>({
+        switchMap((event) =>
+          of<SocketConnected>({
             type: OrderBookActionTypes.SocketConnected,
-          });
-        })
+          })
+        )
       );
       const close$ = closeObserver.pipe(
         map<Event, SocketDisconnected>((event) => {
-          console.debug('close', event);
           return { type: OrderBookActionTypes.SocketDisconnected };
         })
       );

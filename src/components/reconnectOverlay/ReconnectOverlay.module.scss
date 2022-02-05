@@ -1,0 +1,37 @@
+.overlay {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+
+  display: flex;
+  flex-flow: column;
+  justify-content: center;
+  align-items: center;
+
+  background: transparentize($color: #000, $amount: 0.5);
+}
+
+.textContainer {
+  display: flex;
+  flex-flow: column;
+  justify-content: center;
+  align-items: center;
+  padding: 24px;
+  border-radius: 8px;
+
+  background-color: #141722;
+}
+
+.button {
+  max-width: 200px;
+  background: #5149d1;
+  border: none;
+  border-radius: 5px;
+  color: #b0b2b8;
+  font-weight: bold;
+  padding: 8px 12px;
+  margin: 8px;
+  cursor: pointer;
+}

@@ -10,7 +10,6 @@ export const useResizeObserver = (containerRef: RefObject<HTMLDivElement>) => {
         const maxItemsToRender = Math.floor(
           entries[0].contentRect.height / ORDER_ITEM_HEIGHT
         );
-        console.debug('max', maxItemsToRender);
         setMaxItemsToRender(maxItemsToRender);
       }
     })

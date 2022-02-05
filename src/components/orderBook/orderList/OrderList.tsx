@@ -18,44 +18,42 @@ interface OrderListProps {
   maxTotal: number;
 }
 
-export const OrderList: React.FunctionComponent<OrderListProps> = ({
-  type,
-  orders,
-  maxTotal,
-}) => {
-  const dispatch = useDispatch<AppDispatch>();
-  const containerRef = useRef<HTMLDivElement>(null);
-  const maxItemsToRender = useResizeObserver(containerRef);
+export const OrderList: React.FunctionComponent<OrderListProps> = React.memo(
+  ({ type, orders, maxTotal }) => {
+    const dispatch = useDispatch<AppDispatch>();
+    const containerRef = useRef<HTMLDivElement>(null);
+    const maxItemsToRender = useResizeObserver(containerRef);
 
-  useEffect(() => {
-    dispatch({
-      type:
-        type === 'bids'
-          ? OrderBookActionTypes.UpdateBidsLastVisibleIndex
-          : OrderBookActionTypes.UpdateAsksLastVisibleIndex,
-      index: maxItemsToRender - 1,
-    });
-  }, [dispatch, maxItemsToRender, type]);
+    useEffect(() => {
+      dispatch({
+        type:
+          type === 'bids'
+            ? OrderBookActionTypes.UpdateBidsLastVisibleIndex
+            : OrderBookActionTypes.UpdateAsksLastVisibleIndex,
+        index: maxItemsToRender - 1,
+      });
+    }, [dispatch, maxItemsToRender, type]);
 
-  return (
-    <div
-      ref={containerRef}
-      className={classNames(styles.container, {
-        [styles.asks]: type === 'asks',
-        [styles.bids]: type === 'bids',
-      })}
-    >
-      {orders.map((order) => (
-        <OrderListItem
-          key={order.price}
-          type={type}
-          item={order}
-          maxTotal={maxTotal}
-        />
-      ))}
-    </div>
-  );
-};
+    return (
+      <div
+        ref={containerRef}
+        className={classNames(styles.container, {
+          [styles.asks]: type === 'asks',
+          [styles.bids]: type === 'bids',
+        })}
+      >
+        {orders.map((order) => (
+          <OrderListItem
+            key={order.price}
+            type={type}
+            item={order}
+            maxTotal={maxTotal}
+          />
+        ))}
+      </div>
+    );
+  }
+);
 
 const OrderListItem: React.FunctionComponent<{
   type: 'asks' | 'bids';

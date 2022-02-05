@@ -31,16 +31,6 @@ function App() {
   return (
     <ErrorBoundary>
       <div className={styles.appContainer}>
-        <button
-          onClick={() => dispatch({ type: OrderBookActionTypes.OpenStream })}
-        >
-          open
-        </button>
-        <button
-          onClick={() => dispatch({ type: OrderBookActionTypes.CloseStream })}
-        >
-          close
-        </button>
         <OrderBook />
         <div className={styles.footer}>
           <button className={styles.toggleButton} onClick={onSwitchContract}>
