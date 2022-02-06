@@ -44,7 +44,6 @@ const getMessage = (
 const url = 'wss://www.cryptofacilities.com/ws/v1';
 const openObserver = new Subject<Event>();
 const closeObserver = new Subject<CloseEvent>();
-const throttleDuration = 1000;
 
 let socket$: WebSocketSubject<OrderBookMessage>;
 

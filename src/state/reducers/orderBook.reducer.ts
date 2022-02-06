@@ -1,15 +1,13 @@
 import type { Reducer } from 'redux';
-import { of } from 'rxjs';
 import { mergeSortedOrdersAndFilterZeroSize } from '../../components/orderBook/utils/orderBook.helpers';
 import type {
   Order,
-  OrderBookResponse,
   Price,
   ProductId,
   Size,
   Total,
 } from '../../types/orderBook.types';
-import { asNumber, assert, asTotal } from '../../types/util.types';
+import { assert } from '../../types/util.types';
 import type {
   DataUpdate,
   OrderBookActions,

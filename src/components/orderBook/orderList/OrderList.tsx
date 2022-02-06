@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useDispatch } from 'react-redux';
 import { useResizeObserver } from '../../../hooks/useResizeObserver';
 import type { AppDispatch } from '../../../state';

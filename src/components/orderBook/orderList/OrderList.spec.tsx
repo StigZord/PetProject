@@ -7,12 +7,7 @@ import { asPrice, asSize, asTotal } from '../../../types/util.types';
 import { Provider } from 'react-redux';
 import * as hooks from '../../../hooks/useResizeObserver';
 
-// jest.mock('../../../hooks/useResizeObserver', () => {
-//   return jest.fn(() => 10);
-// });
 jest.spyOn(hooks, 'useResizeObserver').mockImplementation(() => 12);
-// const spy = jest.spyOn(useResizeObserver, '');
-// spy.mockReturnValue(12);
 
 const generateMockData = function* (
   count: number
