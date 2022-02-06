@@ -1,7 +1,9 @@
 import { RefObject, useEffect, useRef, useState } from 'react';
 import { ORDER_ITEM_HEIGHT } from '../components/orderBook/utils/orderBook.constants';
 
-export const useResizeObserver = (containerRef: RefObject<HTMLDivElement>) => {
+export const useResizeObserver = (
+  containerRef: RefObject<HTMLUListElement>
+) => {
   const [maxItemsToRender, setMaxItemsToRender] = useState(10);
 
   const resizeObserver = useRef(

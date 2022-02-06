@@ -52,16 +52,16 @@ export const OrderBook: React.FunctionComponent = () => {
     asksFrameRef.current = requestAnimationFrame(() => {
       if (orderBookState.type === 'Connected') {
         setDisplayAsks(
-          generateOrdersToDisplay({
-            orders: orderBookState.asks,
-            ordersShown: orderBookState.lastVisibleIndexes.asksIndex,
-          })
+          generateOrdersToDisplay(
+            orderBookState.asks,
+            orderBookState.lastVisibleIndexes.asksIndex
+          )
         );
         setDisplayBids(
-          generateOrdersToDisplay({
-            orders: orderBookState.bids,
-            ordersShown: orderBookState.lastVisibleIndexes.bidsIndex,
-          })
+          generateOrdersToDisplay(
+            orderBookState.bids,
+            orderBookState.lastVisibleIndexes.bidsIndex
+          )
         );
       }
     });

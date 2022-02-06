@@ -21,7 +21,7 @@ interface OrderListProps {
 export const OrderList: React.FunctionComponent<OrderListProps> = React.memo(
   ({ type, orders, maxTotal }) => {
     const dispatch = useDispatch<AppDispatch>();
-    const containerRef = useRef<HTMLDivElement>(null);
+    const containerRef = useRef<HTMLUListElement>(null);
     const maxItemsToRender = useResizeObserver(containerRef);
 
     useEffect(() => {
@@ -35,22 +35,28 @@ export const OrderList: React.FunctionComponent<OrderListProps> = React.memo(
     }, [dispatch, maxItemsToRender, type]);
 
     return (
-      <div
+      <ul
         ref={containerRef}
         className={classNames(styles.container, {
           [styles.asks]: type === 'asks',
           [styles.bids]: type === 'bids',
         })}
+        data-testid='orderListContainer'
       >
-        {orders.map((order) => (
+        {orders.map((order, index) => (
+          // In general using `index` as key is not advised, but in this case
+          // when using unique key (for example price) there are a lot of
+          // LayoutShifts due to new content appearing / old removing,
+          // but with index as key items are rerendered instead and no LSes are reported
           <OrderListItem
-            key={order.price}
+            key={index}
+            // key={order.price}
             type={type}
             item={order}
             maxTotal={maxTotal}
           />
         ))}
-      </div>
+      </ul>
     );
   }
 );
@@ -59,9 +65,9 @@ const OrderListItem: React.FunctionComponent<{
   type: 'asks' | 'bids';
   item: OrderDisplayProps;
   maxTotal: number;
-}> = React.memo(({ type, item: { price, size, total }, maxTotal }) => {
+}> = ({ type, item: { price, size, total }, maxTotal }) => {
   return (
-    <div
+    <li
       className={styles.listItem}
       style={{
         background: `linear-gradient(${
@@ -74,9 +80,9 @@ const OrderListItem: React.FunctionComponent<{
       <div className={styles.priceColor}>{priceFormatter(price)}</div>
       <div>{integerFormatter(size)}</div>
       <div>{integerFormatter(total)}</div>
-    </div>
+    </li>
   );
-});
+};
 
 export const OrderListHeader: React.FunctionComponent<{
   type: 'bids' | 'asks';

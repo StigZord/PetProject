@@ -67,13 +67,10 @@ export const mergeSortedOrdersAndFilterZeroSize = (
   return result;
 };
 
-export const generateOrdersToDisplay = ({
-  orders,
-  ordersShown,
-}: {
-  orders: Order[];
-  ordersShown: number;
-}): OrderDisplayProps[] => {
+export const generateOrdersToDisplay = (
+  orders: Order[],
+  ordersShown: number
+): OrderDisplayProps[] => {
   return orders
     .slice(0, ordersShown)
     .reduce<OrderDisplayProps[]>((acc, [price, size]) => {

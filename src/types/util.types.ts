@@ -1,7 +1,9 @@
-import type { Size, Total } from './orderBook.types';
+import type { Price, Size, Total } from './orderBook.types';
 
 export type Brand<K, T> = K & { __brand: T };
 
+export const asPrice = (value: number): Price => value as Price;
+export const asSize = (value: number): Size => value as Size;
 export const asNumber = (value: Size | Total): number => value as number;
 export const asTotal = (value: Size | number): Total => value as Total;
 

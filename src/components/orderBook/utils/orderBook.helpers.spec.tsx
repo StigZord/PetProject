@@ -1,5 +1,8 @@
 import type { Order, Price, Size } from '../../../types/orderBook.types';
-import { mergeSortedOrdersAndFilterZeroSize } from './orderBook.helpers';
+import {
+  generateOrdersToDisplay,
+  mergeSortedOrdersAndFilterZeroSize,
+} from './orderBook.helpers';
 
 const createOrder = (price: number, size: number = 10): Order => [
   price as Price,
@@ -144,5 +147,29 @@ describe('mergeSortedOrders', () => {
         'desc'
       )
     ).toEqual(expected.reverse());
+  });
+});
+
+describe('generateOrdersToDisplay', () => {
+  it('should generate orders', () => {
+    const orders = [
+      createOrder(1),
+      createOrder(2),
+      createOrder(3),
+      createOrder(4),
+      createOrder(5, 1337),
+      createOrder(6),
+      createOrder(9),
+      createOrder(10),
+    ];
+    const result = generateOrdersToDisplay(orders, 6);
+
+    expect(result).toHaveLength(6);
+    expect(result[0]).toEqual({ price: 1, size: 10, total: 10 });
+    expect(result[result.length - 1]).toEqual({
+      price: 6,
+      size: 10,
+      total: 1387,
+    });
   });
 });
